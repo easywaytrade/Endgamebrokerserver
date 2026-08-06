@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Endgame Robot</title>
-<style>
+<style> 
   :root{
     --gold:#f5c518;
     --bg:#000000;
