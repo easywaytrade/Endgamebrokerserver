@@ -1,1 +1,422 @@
-# Endgamebrokerserver
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Endgame Robot</title>
+<style>
+  :root{
+    --gold:#f5c518;
+    --bg:#000000;
+    --card-bg:#0c0f16;
+    --input-bg:#12151f;
+    --input-border:#2a2f3d;
+    --text-muted:#9aa0ab;
+    --text-light:#e8e8e8;
+  }
+  *{box-sizing:border-box;}
+  html, body{
+    height:100%;
+  }
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    font-family:'Segoe UI', Arial, sans-serif;
+    padding:20px;
+    position:relative;
+    overflow-x:hidden;
+    overflow-y:auto;
+    background:linear-gradient(180deg,
+      #f5c518 0%,
+      #8a6a12 20%,
+      #2a2010 45%,
+      #000000 70%,
+      #000000 100%
+    );
+    background-size:100% 250%;
+    background-attachment:fixed;
+    animation: moveGradient 6s ease-in-out infinite alternate;
+  }
+  @keyframes moveGradient{
+    0%   { background-position: 0% 0%; }
+    100% { background-position: 0% 100%; }
+  }
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background-image:
+      linear-gradient(rgba(120,110,40,0.15) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(120,110,40,0.15) 1px, transparent 1px);
+    background-size:80px 80px;
+  }
+  .card{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:420px;
+    background:#0a0a0a;
+    border:1px solid #1c1c1c;
+    border-radius:18px;
+    padding:36px 32px 40px;
+    text-align:center;
+  }
+  .cover{
+    width:160px;
+    margin:0 auto 24px;
+    display:block;
+    filter:drop-shadow(0 10px 20px rgba(0,0,0,0.6));
+  }
+  .cover-placeholder{
+    width:160px;
+    height:210px;
+    margin:0 auto 24px;
+    background:linear-gradient(160deg,#1a2230,#050608);
+    border:1px solid #333;
+    border-radius:4px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--gold);
+    font-weight:700;
+    font-size:14px;
+    text-align:center;
+    padding:10px;
+  }
+  h1{
+    color:var(--gold);
+    font-size:32px;
+    margin:0 0 10px;
+    font-weight:800;
+  }
+  .subtitle{
+    color:var(--text-muted);
+    font-size:16px;
+    margin:0 0 28px;
+  }
+  .field{
+    text-align:left;
+    margin-bottom:20px;
+  }
+  .field label{
+    display:block;
+    color:var(--text-light);
+    font-size:14px;
+    margin-bottom:8px;
+  }
+  .field input{
+    width:100%;
+    padding:14px 16px;
+    background:var(--input-bg);
+    border:1px solid var(--input-border);
+    border-radius:10px;
+    color:var(--text-light);
+    font-size:15px;
+    outline:none;
+  }
+  .field input::placeholder{
+    color:#6a7180;
+  }
+  .field input:focus{
+    border-color:var(--gold);
+  }
+  .forgot{
+    display:block;
+    text-align:left;
+    color:var(--gold);
+    font-size:14px;
+    text-decoration:none;
+    margin:-6px 0 24px;
+  }
+  .forgot:hover{ text-decoration:underline; }
+  .btn{
+    width:100%;
+    padding:16px;
+    background:var(--gold);
+    border:none;
+    border-radius:10px;
+    color:#141414;
+    font-size:17px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:0 0 25px rgba(245,197,24,0.35);
+    transition:transform .1s ease;
+  }
+  .btn:hover{ filter:brightness(1.05); }
+  .btn:active{ transform:scale(0.99); }
+
+  .screen{ display:none; }
+  .screen.active{ display:block; }
+
+  .welcome-email{
+    color:var(--gold);
+    font-weight:700;
+    word-break:break-all;
+  }
+  .server-line{
+    color:var(--text-muted);
+    font-size:13px;
+    margin-top:-2px;
+    margin-bottom:26px;
+  }
+
+  .deposit-result{
+    display:none;
+    margin-top:24px;
+    padding:20px;
+    background:var(--input-bg);
+    border:1px solid var(--input-border);
+    border-radius:12px;
+    text-align:left;
+  }
+  .deposit-result.active{ display:block; }
+  .addr-row{ margin-bottom:16px; }
+  .addr-row:last-child{ margin-bottom:0; }
+  .addr-label{
+    color:var(--text-muted);
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    margin-bottom:6px;
+  }
+  .addr-value{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:#080a10;
+    border:1px solid var(--input-border);
+    border-radius:8px;
+    padding:10px 12px;
+    font-family:monospace;
+    font-size:13px;
+    color:var(--text-light);
+    word-break:break-all;
+  }
+  .copy-btn{
+    background:none;
+    border:1px solid var(--input-border);
+    color:var(--gold);
+    border-radius:6px;
+    padding:4px 8px;
+    font-size:11px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .copy-btn:hover{ border-color:var(--gold); }
+  .note{
+    color:var(--text-muted);
+    font-size:12px;
+    margin-top:14px;
+    line-height:1.5;
+  }
+  .note code{
+    background:#1a1e29;
+    padding:1px 5px;
+    border-radius:4px;
+    color:var(--gold);
+  }
+  .status-box{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:18px;
+    padding:12px 14px;
+    background:#1a1610;
+    border:1px solid #3a3320;
+    border-radius:8px;
+    font-size:13px;
+    color:var(--text-light);
+  }
+  .status-box.confirmed{
+    background:#0f1f14;
+    border-color:#255c37;
+  }
+  .status-dot{
+    width:9px;
+    height:9px;
+    border-radius:50%;
+    background:var(--gold);
+    flex-shrink:0;
+    animation:pulse 1.4s infinite;
+  }
+  .status-box.confirmed .status-dot{
+    background:#3ecf6b;
+    animation:none;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:1;}
+    50%{opacity:.35;}
+  }
+  .logout{
+    display:inline-block;
+    margin-top:18px;
+    color:var(--text-muted);
+    font-size:13px;
+    text-decoration:underline;
+    cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- ===== LOGIN SCREEN ===== -->
+  <div class="screen active" id="loginScreen">
+    <!-- PASTE YOUR COVER IMAGE HERE.
+         Save your jpeg as "cover.jpg" next to this HTML file,
+         or replace src with a "data:image/jpeg;base64,..." string. -->
+    <img class="cover" src="cover.jpg" alt="Endgame Forex Robot"
+         onerror="this.style.display='none'; document.getElementById('coverFallback').style.display='flex';">
+    <div class="cover-placeholder" id="coverFallback" style="display:none;">
+      Endgame<br>Forex Robot<br><small>(cover image)</small>
+    </div>
+
+    <h1>Endgame Robot</h1>
+    <p class="subtitle">Login to access your robot</p>
+
+    <div class="field">
+      <label for="brokerServer">Broker Server</label>
+      <input type="text" id="brokerServer" placeholder="Enter your broker server">
+    </div>
+
+    <div class="field">
+      <label for="email">Email Address</label>
+      <input type="email" id="email" placeholder="Enter your email">
+    </div>
+
+    <div class="field">
+      <label for="licenseKey">License Key</label>
+      <input type="text" id="licenseKey" placeholder="XXXX-XXXX-XXXX-XXXX">
+    </div>
+
+    <a href="#" class="forgot">Forgot License Key?</a>
+
+    <button class="btn" id="loginBtn" onclick="login()">Login</button>
+  </div>
+
+  <!-- ===== WELCOME / DEPOSIT SCREEN ===== -->
+  <div class="screen" id="welcomeScreen">
+    <h1>Welcome</h1>
+    <p class="subtitle">Logged in as</p>
+    <p class="welcome-email" id="welcomeEmail"></p>
+    <p class="server-line" id="welcomeServer"></p>
+
+    <div class="field">
+      <label for="depositAmount">Deposit Amount (USD)</label>
+      <input type="number" id="depositAmount" placeholder="Enter amount to deposit" min="0">
+    </div>
+
+    <button class="btn" onclick="showDeposit()">Deposit</button>
+
+    <div class="deposit-result" id="depositResult">
+      <div class="addr-row">
+        <div class="addr-label">BTC Address</div>
+        <div class="addr-value">
+          <span id="btcAddr"></span>
+          <button class="copy-btn" onclick="copyText('btcAddr')">Copy</button>
+        </div>
+      </div>
+      <div class="addr-row">
+        <div class="addr-label">USDT Address (TRC20)</div>
+        <div class="addr-value">
+          <span id="usdtAddr"></span>
+          <button class="copy-btn" onclick="copyText('usdtAddr')">Copy</button>
+        </div>
+      </div>
+      <p class="note">
+        Send exactly the deposit amount shown above to the address matching
+        your chosen currency. These addresses are fixed values set in this
+        page's source code — edit the CONFIG block at the top of the
+        &lt;script&gt; to change them.
+      </p>
+
+      <div class="status-box" id="statusBox">
+        <span class="status-dot"></span>
+        <span id="statusText">Awaiting payment — not yet confirmed</span>
+      </div>
+      <p class="note">
+         The
+        <code>markConfirmed()</code> function below is where that real
+        check should plug in.
+      </p>
+    </div>
+
+    <div>
+      <span class="logout" onclick="logout()">Log out</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const CONFIG = {
+    btcAddress:  "bc1qxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    usdtAddress: "TXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  };
+
+  function login(){
+    const email = document.getElementById('email').value.trim();
+    const server = document.getElementById('brokerServer').value.trim();
+    const license = document.getElementById('licenseKey').value.trim();
+
+    if(!email || !license){
+      alert('Please enter your email and license key.');
+      return;
+    }
+
+    document.getElementById('welcomeEmail').textContent = email;
+    document.getElementById('welcomeServer').textContent = server
+      ? 'Broker server: ' + server
+      : '';
+
+    document.getElementById('loginScreen').classList.remove('active');
+    document.getElementById('welcomeScreen').classList.add('active');
+  }
+
+  function showDeposit(){
+    const amount = document.getElementById('depositAmount').value;
+    if(!amount || Number(amount) <= 0){
+      alert('Enter a deposit amount first.');
+      return;
+    }
+    document.getElementById('btcAddr').textContent = CONFIG.btcAddress;
+    document.getElementById('usdtAddr').textContent = CONFIG.usdtAddress;
+    document.getElementById('depositResult').classList.add('active');
+
+    const box = document.getElementById('statusBox');
+    box.classList.remove('confirmed');
+    document.getElementById('statusText').textContent =
+      'Awaiting payment — not yet confirmed';
+  }
+
+  function markConfirmed(){
+    const box = document.getElementById('statusBox');
+    box.classList.add('confirmed');
+    document.getElementById('statusText').textContent =
+      'Payment confirmed';
+  }
+
+  function copyText(id){
+    const text = document.getElementById(id).textContent;
+    navigator.clipboard.writeText(text).then(()=>{
+      alert('Copied to clipboard');
+    });
+  }
+
+  function logout(){
+    document.getElementById('welcomeScreen').classList.remove('active');
+    document.getElementById('depositResult').classList.remove('active');
+    document.getElementById('loginScreen').classList.add('active');
+    document.getElementById('email').value='';
+    document.getElementById('licenseKey').value='';
+    document.getElementById('brokerServer').value='';
+    document.getElementById('depositAmount').value='';
+  }
+</script>
+
+</body>
+</html>
