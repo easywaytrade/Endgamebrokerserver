@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Endgame Robot</title>
-<style> 
+<style>
   :root{
     --gold:#f5c518;
     --bg:#000000;
@@ -269,7 +269,7 @@
     <!-- PASTE YOUR COVER IMAGE HERE.
          Save your jpeg as "cover.jpg" next to this HTML file,
          or replace src with a "data:image/jpeg;base64,..." string. -->
-    <img class="cover" src="cover.jpg" alt="Endgame Forex Robot"
+    <img class="cover" src="end game.png" alt="Endgame Forex Robot"
          onerror="this.style.display='none'; document.getElementById('coverFallback').style.display='flex';">
     <div class="cover-placeholder" id="coverFallback" style="display:none;">
       Endgame<br>Forex Robot<br><small>(cover image)</small>
